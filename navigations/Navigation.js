@@ -28,7 +28,7 @@ export default function Navigation(){
                 <Tab.Screen name="favorites" component={FavoritesStack} options={{title: "Favoritos"}}/>
                 <Tab.Screen name="search" component={SearchStack} options={{title: "Búsqueda"}}/>
                 <Tab.Screen name="top-restaurants" component={TopRestaurantsStack} options={{title: "5 Mejores"}}/>
-                <Tab.Screen name="account" component={AccountStack} options={{title: "Mi Cuenta"}}/>
+                <Tab.Screen name="account" component={AccountStack} options={{tabBarBadge:3, title: "Mi Cuenta"}}/>
             </Tab.Navigator>
         </NavigationContainer>
 
