@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {StyleSheet, View} from "react-native";
-import loading from "../Loading";
 import { Input, Icon, Button} from "react-native-elements";
 import { validarEmail } from "../../utils/validations";
 import { size, isEmpty} from "lodash";
@@ -35,7 +34,7 @@ export default function RegisterForm(props){
         } else if (!validarEmail(formData.email)) {
             toastRef.current.show("El correo no es correcto");
        } else {
-            console.log("Todo ok");
+            console.log("Todo ok: "+ formData.email + "/"+ formData.password);
             setLoading(true);
             firebase
                 .auth()
@@ -47,6 +46,7 @@ export default function RegisterForm(props){
                 .catch(err => {
                     setLoading(false);
                     toastRef.current.show("El email está en uso, pruebe con otro");
+                    console.log(err);
                 })
        }
         //console.log(formData);
