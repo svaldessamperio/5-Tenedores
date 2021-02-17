@@ -29,7 +29,10 @@ export default function UserLogged(props){
                     setLoading={setloading}
                     setLoadingText={setloadingText}
                 />}
-            <AccountOptions />
+            <AccountOptions
+                userInfo={userInfo} 
+                toastRef={toastRef} 
+            />
             <Button
                 title="Cerrar Sesión" 
                 buttonStyle={styles.btnCloseSession}

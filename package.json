@@ -17,6 +17,7 @@
     "expo-permissions": "~9.3.0",
     "expo-status-bar": "~1.0.2",
     "firebase": "7.9.0",
+    "grpc": "^1.24.5",
     "lodash": "^4.17.20",
     "react": "16.13.1",
     "react-devtools-core": "^4.10.1",
@@ -35,5 +36,18 @@
   "devDependencies": {
     "@babel/core": "~7.9.0"
   },
-  "private": true
+  "private": true,
+  "name": "5-tenedores",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svaldessamperio/5-Tenedores.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/svaldessamperio/5-Tenedores/issues"
+  },
+  "homepage": "https://github.com/svaldessamperio/5-Tenedores#readme",
+  "description": ""
 }
