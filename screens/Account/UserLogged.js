@@ -30,7 +30,8 @@ export default function UserLogged(props){
                     toastRef={toastRef} 
                     setLoading={setloading}
                     setLoadingText={setloadingText}
-                />}
+                />
+            }
             <AccountOptions
                 userInfo={userInfo} 
                 toastRef={toastRef} 

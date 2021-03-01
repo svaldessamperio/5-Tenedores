@@ -98,15 +98,15 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 30
+        marginTop: 30,
     },
     inputForm:{
         width: "100%",
-        marginTop: 20
+        marginTop: 20,
     },
     btnContainerLogin:{
         marginTop:20,
-        width: "95%"
+        width: "95%",
     },
     btnLogin:{
         backgroundColor:"#00a680",

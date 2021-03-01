@@ -1,14 +1,21 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View } from "react-native";
 import { Input, Button } from "react-native-elements";
 import * as firebase from "firebase";
 
 export default function ChangeDisplayNameForm(props){
     
-    const {displayName, setShowModal, toastRef, setReloadUserInfo} = props;
+    const {displayName, setShowModal, setReloadUserInfo} = props;
     const [newDisPlayName, setNewDisPlayName] = useState(null);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    
+    
+    useEffect(() => {
+        if(displayName){
+            setNewDisPlayName(displayName);
+        }
+    }, [])
 
     const onSubmit = () => {
         if(!newDisPlayName){
@@ -59,6 +66,7 @@ export default function ChangeDisplayNameForm(props){
         </View>
     );
 }
+
 
 const styles=StyleSheet.create({
     view: {
