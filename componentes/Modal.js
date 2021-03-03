@@ -27,3 +27,11 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
     },
 });
+
+function initialData(){
+    return ({
+        password: "",
+        newPassword: "",
+        repeatNewPassword: "",
+    });
+}
