@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, ScrollView, Alert, Dimensions, Text } from "react-native";
 import {Icon, Avatar, Image, Input, Button} from "react-native-elements";
 import { map, size, filter, set } from "lodash";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import MapView from "react-native-maps";
 import Modal from "../Modal";
 
 
@@ -48,24 +50,14 @@ export default function AddRestaurantForm(props){
             <Map
                 isVisibleMap={isVisibleMap}
                 setIsVisibleMap={setIsVisibleMap}
+                toastRef={toastRef}
             />
         </ScrollView>
     );
 }
 
-function Map (props) {
-    
-    const { isVisibleMap, setIsVisibleMap } = props;
-
-    return(
-        <Modal isVisible={isVisibleMap} setIsVisible={setIsVisibleMap}>
-            <Text>MODAL.....</Text>
-        </Modal>
-    );
-}
-
 function FormAdd (props) {
-    const { setRestaurantName, setRestaurantAddress, setRestaurantDescription,setIsVisibleMap } = props;
+    const { setRestaurantName, setRestaurantAddress, setRestaurantDescription, setIsVisibleMap } = props;
     return(
         <View style={styles.viewForm}>
             <Input
@@ -101,6 +93,63 @@ function FormAdd (props) {
         </View>
     );
 
+}
+
+function Map (props) {
+    
+    const [location, setLocation] = useState(null);
+    const { isVisibleMap, setIsVisibleMap, toastRef } = props;
+
+    useEffect(() => {
+        (async () => {
+            const resultPermissions = await Permissions.askAsync(Permissions.LOCATION)
+            .then((r) => {
+                //console.log(r.status);
+                if (r.status !== "granted"){
+                    toastRef.current.show("Debes aceptar los permisos de Localización para crear restaurantes");
+                } else {
+                    const loc = Location.getLastKnownPositionAsync({})
+                    .then((loc) => { 
+                        //console.log(JSON.stringify(loc));
+                        setLocation({
+                            latitude: loc.coords.latitude,
+                            longitude: loc.coords.longitude,
+                            latitudeDelta: 0.001,
+                            longitudeDelta: 0.001,
+                        });
+                    })
+                    .catch((e) => { 
+                        console.log("FALLÓ: " + e ); 
+                    });
+                }
+            })
+            .catch((e) => { 
+                console.log("ERRORS:" + e);
+            });
+           
+        })()
+    }, [])
+
+    return(
+        <Modal isVisible={isVisibleMap} setIsVisible={setIsVisibleMap}>
+            <View>
+                {location &&
+                <MapView
+                    style={styles.mapStyle}
+                    initialRegion={location}
+                    showsUserLocation={true}
+                    showsTraffic={true}
+                    onRegionChange={(region) => setLocation(region)}
+                >
+                    <MapView.Marker 
+                        coordinate={location}
+                        draggable
+                    />
+                </MapView>
+                }
+            </View>
+        </Modal>
+    );
 }
 
 function UploadImage(props) {
@@ -238,5 +287,9 @@ const styles = StyleSheet.create({
         alignItems:"center",
         height:300,
         marginBottom: 20,
+    },
+    mapStyle: {
+        width: "100%",
+        height: 550,
     },
 });
