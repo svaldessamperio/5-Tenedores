@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Alert, Dimensions, Text } from "react-native";
+import { StyleSheet, View, ScrollView, Alert, Dimensions } from "react-native";
 import {Icon, Avatar, Image, Input, Button} from "react-native-elements";
 import { map, size, filter, set } from "lodash";
 import * as Permissions from "expo-permissions";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import MapView from "react-native-maps";
+import uuid from "random-uuid-v4";
 import Modal from "../Modal";
 
+import { firebaseApp } from "../../utils/firebase";
+import firebase from "firebase/app";
+import "firebase/storage";
+import "firebase/firestore";
+const db = firebase.firestore(firebaseApp);
 
 export default function AddRestaurantForm(props){
     const { toastRef, setIsLoading, navigation } = props;
@@ -20,11 +26,66 @@ export default function AddRestaurantForm(props){
     const widthScreen = Dimensions.get("window").width;
 
     const addRestaurant = () =>{
-        console.log("Rest Name: " + restaurantName);
-        console.log("Rest. Dir: " + restaurantAddress);
-        console.log("Rest. Descrip: " + restaurantDescription);
-        console.log(imageSelected);
-        console.log(locationRestaurant);
+        if (!restaurantName || !(size(restaurantName)>5)){
+            toastRef.current.show("Deber ingresar un nombre válido");
+        } else if (!restaurantAddress || !(size(restaurantAddress)>5)) {
+            toastRef.current.show("Deber ingresar una dirección válida");
+        } else if (!restaurantDescription || !(size(restaurantDescription)>5)) {
+            toastRef.current.show("Deber ingresar una descripción válida");
+        } else if(size(imageSelected) === 0) {
+            toastRef.current.show("Debes seleccionar almenos una imagen");
+        } else if (!locationRestaurant) {
+            toastRef.current.show("Debes seleccionar la ubicación del restaurante");
+        } else {
+            setIsLoading(true);
+            uploadImage2Storage().then((response) =>{
+                db.collection("restaurants")
+                .add({
+                    name: restaurantName,
+                    address: restaurantAddress,
+                    description: restaurantDescription,
+                    location: locationRestaurant,
+                    images: response,
+                    rating: 0,
+                    ratingTotal: 0,
+                    quantityVoting: 0,
+                    createdAt: new Date(),
+                    createdBy: firebase.auth().currentUser.uid,
+                })
+                .then(() =>{
+                    setIsLoading(false);
+                    navigation.navigate("restaurants");
+                })
+                .catch(() =>{
+                    setIsLoading(false);
+                    toastRef.current.show("FALLÓ: Almacenamiento en firestore");
+                    
+                });
+            });
+        }
+    };
+
+    const uploadImage2Storage = async () => {
+        const imageBlob = [];
+
+        await Promise.all(
+            map(imageSelected, async (image) => {
+                const response = await fetch(image);
+                const blob = await response.blob();
+                const ref = firebase.storage().ref("restaurant-images").child(uuid());
+                await ref.put(blob).then(async (result) => {
+                    await firebase
+                        .storage()
+                        .ref(`restaurant-images/${result.metadata.name}`)
+                        .getDownloadURL()
+                        .then(photoUrl => {
+                            imageBlob.push(photoUrl);
+                        });
+                });
+            })
+        );
+
+        return imageBlob;
     };
 
     return(
@@ -38,6 +99,7 @@ export default function AddRestaurantForm(props){
                 setRestaurantAddress={setRestaurantAddress}
                 setRestaurantDescription={setRestaurantDescription}
                 setIsVisibleMap={setIsVisibleMap}
+                locationRestaurant={locationRestaurant}
             />
             <UploadImage
                 toastRef={toastRef}
@@ -60,7 +122,8 @@ export default function AddRestaurantForm(props){
 }
 
 function FormAdd (props) {
-    const { setRestaurantName, setRestaurantAddress, setRestaurantDescription, setIsVisibleMap } = props;
+    const { setRestaurantName, setRestaurantAddress, setRestaurantDescription, setIsVisibleMap,
+        locationRestaurant } = props;
     return(
         <View style={styles.viewForm}>
             <Input
@@ -79,7 +142,7 @@ function FormAdd (props) {
                 rightIcon={{
                     type: "material-community",
                     name: "google-maps",
-                    color: "#c2c2c2",
+                    color: locationRestaurant ? "#00a680" : "#c2c2c2",
                     onPress: () => {
                         setIsVisibleMap(true);
                     }
@@ -100,8 +163,8 @@ function FormAdd (props) {
 
 function Map (props) {
     
-    const [location, setLocation] = useState(null);
     const { isVisibleMap, setIsVisibleMap, setLocationRestaurant, toastRef } = props;
+    const [location, setLocation] = useState(null);
 
     const guardarLocation = () => {
         setLocationRestaurant (location);
@@ -128,7 +191,7 @@ function Map (props) {
                         });
                     })
                     .catch((e) => { 
-                        console.log("FALLÓ: " + e ); 
+                        console.log("FALLÓ: " + e );
                     });
                 }
             })

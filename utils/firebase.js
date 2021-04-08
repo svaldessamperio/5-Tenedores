@@ -1,7 +1,7 @@
 import firebase from "firebase/app";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDdJgA6IgXXb9ZsrpW4H6ZwMgPxnqhsogc",
+  var firebaseConfig = {
+    apiKey: "AIzaSyDbWSUfHHuiW6Y1IExatX8G8VJIhn-BD04",
     authDomain: "tenedores-cd5b5.firebaseapp.com",
     databaseURL: "https://tenedores-cd5b5.firebaseio.com",
     projectId: "tenedores-cd5b5",

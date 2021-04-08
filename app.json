@@ -31,6 +31,12 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.samikey.restaurantes",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDdJgA6IgXXb9ZsrpW4H6ZwMgPxnqhsogc"
+        }
       }
     },
     "web": {
