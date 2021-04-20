@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {StyleSheet, View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator} from "react-native";
 import { Icon, Button, Image } from "react-native-elements";
 import { useFocusEffect } from "@react-navigation/native"
 import Loading from "../../componentes/Loading";
+import Toast from "react-native-easy-toast";
 
 import { firebaseApp } from "../../utils/firebase";
 import firebase from "firebase/app";
 import "firebase/firestore";
-import { rest } from "lodash";
 
 const db = firebase.firestore(firebaseApp);
 
@@ -15,10 +15,14 @@ export default function Favorites(props) {
     const { navigation } = props;
     const [userLogged, setUserLogged] = useState(false);
     const [restaurants, setRestaurants] = useState([]);
+    const [recargaPagina, setRecargaPagina] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
     const user = firebase.auth().onAuthStateChanged((user) => {
         user ? setUserLogged(true) : setUserLogged(false);
     });
+    
+    const toastRef = useRef();
 
     useFocusEffect (
         useCallback(()=>{
@@ -47,7 +51,7 @@ export default function Favorites(props) {
                     console.log("Error al traer los favoritos");
                 });
             }
-        },[userLogged])
+        },[userLogged, recargaPagina])
     );
 
     const getRestaurantData = (idRestaurantsArray) => {
@@ -72,7 +76,7 @@ export default function Favorites(props) {
             {restaurants ? (
                 <FlatList
                     data={restaurants}
-                    renderItem={(restaurant) => <Restaurant restaurant={restaurant}/>}
+                    renderItem={(restaurant) => <Restaurant restaurant={restaurant} setIsVisible={setIsVisible} navigation={navigation}/>}
                     keyExtractor={(item, index) => index.toString()}
                 />
             )
@@ -84,6 +88,8 @@ export default function Favorites(props) {
                 </View>
             )
             }
+            <Toast ref={toastRef} position="center" opacity={0.9}/>
+            <Loading isVisible={isVisible} text="Actualizando Favoritos"/>
         </View>
     );
 
@@ -127,11 +133,64 @@ export default function Favorites(props) {
     }
 
     function Restaurant(props){
-        const { restaurant } = props;
-        const { name, images } = restaurant.item;
+        const { restaurant, setIsVisible, navigation } = props;
+        const { id, name, images } = restaurant.item;
+
+        const confirmRemoveFavorites = () => {
+            Alert.alert(
+                "Eliminar de Favoritos",
+                "¿Deseas eliminar este restaurante de favoritos?",
+                [
+                    {
+                        text: "Cancelar",
+                        style: "cancel",
+                    },
+                    {
+                        text: "Eliminar",
+                        onPress: removeFromFavorites,
+                    },
+                ],
+                {cancelable: false}
+            );
+        }
+        const removeFromFavorites = () =>{
+            setIsVisible(true);
+            db.collection("favorites")
+            .where("idUser", "==", firebase.auth().currentUser.uid)
+            .where("idRestaurant", "==", id)
+            .get()
+            .then((response) => {
+                response.forEach((doc) => {
+                    db.collection("favorites")
+                    .doc(doc.id)
+                    .delete()
+                    .then(() => {
+                        console.log("Se borró de favoritos el restaurante: " + doc.id);
+                        toastRef.current.show("El restaurante fue eliminado de favoritos");
+                        setRecargaPagina(!recargaPagina);
+                        setIsVisible(false);
+                    })
+                    .catch(() => {
+                        setIsVisible(false);
+                        toastRef.current.show("Falla al eliminar el restaurant de favoritos");
+                        console.log("Falla al eliminar el restaurant de favoritos");
+                    });
+                })
+            })
+            .catch(() => {
+                setIsVisible(false);
+                toastRef.current.show("Error al intentar ubicar el registo a eliminar");
+                console.log("Error al intentar ubicar el registo a eliminar");
+            });
+        }
         return(
             <View style={styles.viewRestaurant}>
-                <TouchableOpacity onPress={() => console.log("IR")}>
+                <TouchableOpacity onPress={() => { 
+                    navigation.navigate("restaurants", {
+                    screen: "restaurant", 
+                    params: { id },})
+                    }
+                    }>
                     <Image
                         resizeMode="cover"
                         style={styles.restaurantImage}
@@ -148,7 +207,7 @@ export default function Favorites(props) {
                         name="heart"
                         color="#f00"
                         containerStyle={styles.iconFavorite}
-                        onPress={() => console.log("REMOVE")}
+                        onPress={confirmRemoveFavorites}
                         underlayColor="transparent"
                     />
                 </View>

@@ -43,7 +43,7 @@ export default function Restaurant(props) {
             setRestaurant(data);
             setRating(data.rating);
         })
-        }, [])
+        }, [id])
     )
     
 useEffect(() => {
