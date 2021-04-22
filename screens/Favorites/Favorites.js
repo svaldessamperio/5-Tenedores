@@ -188,7 +188,7 @@ export default function Favorites(props) {
                 <TouchableOpacity onPress={() => { 
                     navigation.navigate("restaurants", {
                     screen: "restaurant", 
-                    params: { id },})
+                    params: { id, name },})
                     }
                     }>
                     <Image
